@@ -12,7 +12,7 @@ function ScenarioSelector({ onSelectScenario, onGoToHistory }) {
     if (activeTab === 'quick' && quickScenarios.length === 0) {
       loadQuickScenarios();
     }
-  }, [activeTab]);
+  }, [activeTab,quickScenarios.length]);
 
   const loadQuickScenarios = async () => {
     setLoading(true);

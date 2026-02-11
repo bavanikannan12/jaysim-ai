@@ -1,7 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback
+} from 'react';
 import axios from 'axios';
 
-function VoiceSimulationInterface({ scenario, sessionLength, sessionId, initialGreeting, continuedMessages, onEnd }) {
+function VoiceSimulationInterface({
+  scenario,
+  sessionLength,
+  sessionId,
+  initialGreeting,
+  continuedMessages,
+  onEnd
+}) {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,217 +27,192 @@ function VoiceSimulationInterface({ scenario, sessionLength, sessionId, initialG
   const recognitionRef = useRef(null);
   const synthesisRef = useRef(window.speechSynthesis);
 
+  // ------------------------
+  // Speech Initialization
+  // ------------------------
   useEffect(() => {
-    // Initialize speech recognition
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US';
+    const recognitionAvailable =
+      'webkitSpeechRecognition' in window ||
+      'SpeechRecognition' in window;
 
-      recognitionRef.current.onresult = (event) => {
+    if (recognitionAvailable) {
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         setInputMessage(transcript);
         setIsListening(false);
-        // Auto-send if enabled
-        if (autoListen) {
-          handleSendMessage(transcript);
-        }
       };
 
-      recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-      };
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
 
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
+      recognitionRef.current = recognition;
     }
 
-    // Cleanup
+    const synth = synthesisRef.current;
+
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
-      synthesisRef.current.cancel();
+      if (synth) {
+        synth.cancel();
+      }
     };
   }, []);
 
+  // ------------------------
+  // Scroll to bottom
+  // ------------------------
   useEffect(() => {
-    // Scroll to bottom when new messages arrive
     if (chatWindowRef.current) {
-      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+      chatWindowRef.current.scrollTop =
+        chatWindowRef.current.scrollHeight;
     }
   }, [messages]);
 
+  // ------------------------
+  // Speak Text (Fixed with useCallback)
+  // ------------------------
+  const speakText = useCallback(
+    (text) => {
+      if (!voiceEnabled || !text) return;
+
+      synthesisRef.current.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      const voices = synthesisRef.current.getVoices();
+      const preferredVoice =
+        voices.find((v) => v.lang.startsWith('en-')) || voices[0];
+
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+
+      synthesisRef.current.speak(utterance);
+    },
+    [voiceEnabled]
+  );
+
+  // ------------------------
+  // Greeting / Continue Session
+  // ------------------------
   useEffect(() => {
-    // Check if this is a continued session with existing messages
     if (continuedMessages && continuedMessages.length > 0) {
-      const formattedMessages = continuedMessages.map(msg => ({
-        sender: msg.role === 'user' ? 'You' : scenario.context.clientName,
+      const formatted = continuedMessages.map((msg) => ({
+        sender:
+          msg.role === 'user'
+            ? 'You'
+            : scenario.context.clientName,
         text: msg.content,
         type: msg.role === 'user' ? 'user' : 'client'
       }));
-      setMessages(formattedMessages);
+
+      setMessages(formatted);
       return;
     }
 
-    // Auto-start conversation with AI greeting (use the greeting from startSimulation)
     if (messages.length === 0 && initialGreeting) {
-      // Small delay to let UI load
       setTimeout(() => {
-        setMessages([{
-          sender: scenario.context.clientName,
-          text: initialGreeting,
-          type: 'client'
-        }]);
+        setMessages([
+          {
+            sender: scenario.context.clientName,
+            text: initialGreeting,
+            type: 'client'
+          }
+        ]);
 
-        // Speak the greeting
         if (voiceEnabled) {
-          setTimeout(() => speakText(initialGreeting), 500);
+          speakText(initialGreeting);
         }
       }, 500);
     }
-  }, [initialGreeting, continuedMessages]); // Run when initialGreeting or continuedMessages is available
+  }, [
+    initialGreeting,
+    continuedMessages,
+    scenario.context.clientName,
+    messages.length,
+    voiceEnabled,
+    speakText
+  ]);
 
-  const startListening = async () => {
-    if (recognitionRef.current && !isListening) {
-      try {
-        // Request microphone permission first
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-        recognitionRef.current.start();
-        setIsListening(true);
-      } catch (error) {
-        console.error('Error starting recognition:', error);
-        alert('Microphone access denied. Please allow microphone permission and try again.');
-      }
-    }
-  };
-
-  const stopListening = () => {
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    }
-  };
-
-  const speakText = (text) => {
-    if (!voiceEnabled || !text) return;
-
-    // Cancel any ongoing speech
-    synthesisRef.current.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    // Optimize for natural conversation
-    utterance.rate = 0.95; // Slightly slower for clarity
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
-
-    // Select best available voice
-    const voices = synthesisRef.current.getVoices();
-
-    // Priority order for best voice quality
-    const preferredVoice = voices.find(voice =>
-      // Google voices are generally best
-      voice.name.includes('Google US English') ||
-      voice.name.includes('Google UK English') ||
-      voice.name.includes('Microsoft David') ||
-      voice.name.includes('Microsoft Zira') ||
-      voice.name.includes('Samantha') || // macOS
-      voice.name.includes('Karen') || // macOS
-      voice.name.includes('Natural') ||
-      (voice.lang === 'en-US' && voice.localService === false) // Cloud voices
-    ) || voices.find(v => v.lang.startsWith('en-')) || voices[0];
-
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-      console.log('Using voice:', preferredVoice.name);
-    }
-
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      // Auto-listen for next response if enabled
-      if (autoListen && sessionActive) {
-        setTimeout(() => startListening(), 800);
-      }
-    };
-
-    utterance.onerror = (error) => {
-      console.error('Speech synthesis error:', error);
-      setIsSpeaking(false);
-    };
-
-    synthesisRef.current.speak(utterance);
-  };
-
-  const handleSendMessage = async (messageText = inputMessage) => {
+  // ------------------------
+  // Send Message
+  // ------------------------
+  const handleSendMessage = async (
+    messageText = inputMessage
+  ) => {
     if (!messageText.trim() || loading) return;
 
-    const userMessage = messageText;
     setInputMessage('');
 
-    // Add user message to chat
-    setMessages(prev => [...prev, {
-      sender: 'You',
-      text: userMessage,
-      type: 'user'
-    }]);
+    setMessages((prev) => [
+      ...prev,
+      { sender: 'You', text: messageText, type: 'user' }
+    ]);
 
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/simulation/message', {
-        sessionId: sessionId,
-        message: userMessage
-      });
+      const response = await axios.post(
+        '/api/simulation/message',
+        {
+          sessionId,
+          message: messageText
+        }
+      );
 
       const clientResponse = response.data.message;
 
-      // Add client response
-      setMessages(prev => [...prev, {
-        sender: scenario.context.clientName,
-        text: clientResponse,
-        type: 'client'
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: scenario.context.clientName,
+          text: clientResponse,
+          type: 'client'
+        }
+      ]);
 
-      // Speak the client's response
       if (voiceEnabled) {
         speakText(clientResponse);
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => [...prev, {
-        sender: 'System',
-        text: 'Error: Failed to get response. Please try again.',
-        type: 'client'
-      }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: 'System',
+          text: 'Error: Failed to get response.',
+          type: 'client'
+        }
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
+  // ------------------------
+  // End Simulation
+  // ------------------------
   const handleEndSimulation = () => {
     synthesisRef.current.cancel();
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
+    recognitionRef.current?.stop();
     setSessionActive(false);
     onEnd();
-  };
-
-  const toggleVoice = () => {
-    if (voiceEnabled) {
-      synthesisRef.current.cancel();
-    }
-    setVoiceEnabled(!voiceEnabled);
-  };
-
-  const toggleAutoListen = () => {
-    setAutoListen(!autoListen);
   };
 
   return (
@@ -233,98 +220,33 @@ function VoiceSimulationInterface({ scenario, sessionLength, sessionId, initialG
       <div className="simulation-header">
         <h2>{scenario.title}</h2>
         <div className="client-info">
-          <span>🎤 Voice Call: {scenario.context.clientName}</span>
-          <span className="session-length">Session: {sessionLength} min</span>
+          🎤 Voice Call: {scenario.context.clientName}
         </div>
       </div>
 
-      <div className="voice-controls">
-        <button
-          className={`voice-btn ${voiceEnabled ? 'active' : ''}`}
-          onClick={toggleVoice}
-          title="Toggle voice output"
-        >
-          {voiceEnabled ? '🔊' : '🔇'}
-        </button>
-        <button
-          className={`voice-btn ${autoListen ? 'active' : ''}`}
-          onClick={toggleAutoListen}
-          title="Automatically listen after AI responds"
-        >
-          {autoListen ? '🔄 Auto' : '🔄'}
-        </button>
-        {isSpeaking && <span className="status-indicator speaking">Speaking...</span>}
-        {isListening && <span className="status-indicator listening">Listening...</span>}
-      </div>
-
       <div className="chat-window" ref={chatWindowRef}>
-        {messages.length === 0 && (
-          <div className="message client">
-            <div className="sender">{scenario.context.clientName}</div>
-            <div>Connecting...</div>
-          </div>
-        )}
-
-        {messages.map((message, index) => (
-          <div key={index} className={`message ${message.type}`}>
-            <div className="sender">{message.sender}</div>
-            <div>{message.text}</div>
+        {messages.map((msg, i) => (
+          <div key={i} className={`message ${msg.type}`}>
+            <div className="sender">{msg.sender}</div>
+            <div>{msg.text}</div>
           </div>
         ))}
-
-        {loading && (
-          <div className="message client">
-            <div className="sender">{scenario.context.clientName}</div>
-            <div>Thinking...</div>
-          </div>
-        )}
       </div>
 
       {sessionActive && (
-        <>
-          <div className="input-area voice-input">
-            <button
-              className={`mic-button ${isListening ? 'listening' : ''}`}
-              onClick={isListening ? stopListening : startListening}
-              disabled={loading}
-              title={isListening ? 'Stop listening' : 'Start speaking'}
-            >
-              {isListening ? '⏹' : '🎤'}
-            </button>
-
-            <textarea
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Message..."
-              disabled={loading || isListening}
-            />
-
-            <button
-              onClick={() => handleSendMessage()}
-              disabled={loading || !inputMessage.trim() || isListening}
-              className="send-button"
-            >
-              ↑
-            </button>
-          </div>
-
-          <div className="simulation-controls">
-            <button className="btn btn-secondary" onClick={handleEndSimulation}>
-              End Call
-            </button>
-          </div>
-        </>
-      )}
-
-      {!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) && (
-        <div className="voice-warning">
-          Voice input requires Chrome or Edge browser
+        <div className="input-area">
+          <textarea
+            value={inputMessage}
+            onChange={(e) =>
+              setInputMessage(e.target.value)
+            }
+          />
+          <button onClick={handleSendMessage}>
+            Send
+          </button>
+          <button onClick={handleEndSimulation}>
+            End Call
+          </button>
         </div>
       )}
     </div>
