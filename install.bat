@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo JaySim Installation Script
+echo ClearPitch Installation Script
 echo ========================================
 echo.
 
@@ -63,7 +63,7 @@ echo Next steps:
 echo 1. Edit backend\.env and add your GEMINI_API_KEY
 echo    Get it from: https://makersuite.google.com/app/apikey
 echo.
-echo 2. Run start-jaysim.bat to start the application
+echo 2. Run start-clearpitch.bat to start the application
 echo    OR manually:
 echo    - Terminal 1: cd backend ^&^& npm start
 echo    - Terminal 2: cd frontend ^&^& npm start

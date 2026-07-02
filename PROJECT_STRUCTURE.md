@@ -1,4 +1,4 @@
-# JaySim Project Structure
+# ClearPitch Project Structure
 
 ## Complete File Tree
 

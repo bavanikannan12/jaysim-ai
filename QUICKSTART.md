@@ -1,4 +1,4 @@
-# 🚀 JaySim Quick Start (5 Minutes)
+# 🚀 ClearPitch Quick Start (5 Minutes)
 
 ## What You Have
 A complete client simulation platform with:
@@ -42,7 +42,7 @@ npm install
 
 **Option A - Automatic (Windows):**
 ```bash
-# Double-click: start-jaysim.bat
+# Double-click: start-clearpitch.bat
 ```
 
 **Option B - Manual:**
@@ -78,7 +78,7 @@ p1/
 ├── backend/          → Node.js server + AI integration
 ├── frontend/         → React UI
 ├── install.bat       → Automatic installation (Windows)
-├── start-jaysim.bat  → Start both servers (Windows)
+├── start-clearpitch.bat  → Start both servers (Windows)
 ├── README.md         → Full documentation
 └── SETUP_GUIDE.md    → Detailed setup instructions
 ```
@@ -144,4 +144,4 @@ After your first session:
 
 ---
 
-**Ready?** Run `install.bat` then `start-jaysim.bat` and you're live!
+**Ready?** Run `install.bat` then `start-clearpitch.bat` and you're live!

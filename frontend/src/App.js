@@ -147,7 +147,7 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <div className="header-title">
-            <h1 onClick={handleBackToHome} style={{ cursor: 'pointer' }}>JaySim</h1>
+            <h1 onClick={handleBackToHome} style={{ cursor: 'pointer' }}>ClearPitch</h1>
             <p>Practice Client Communication & Problem Solving</p>
           </div>
         </div>

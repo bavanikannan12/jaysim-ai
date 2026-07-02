@@ -1,7 +1,7 @@
 {
-  "name": "jaysim-frontend",
+  "name": "clearpitch-frontend",
   "version": "1.0.0",
-  "description": "JaySim Frontend - Client Simulation Platform",
+  "description": "ClearPitch Frontend - Client Simulation Platform",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",
