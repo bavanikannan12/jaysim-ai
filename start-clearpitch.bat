@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo Starting JaySim Application
+echo Starting ClearPitch Application
 echo ========================================
 echo.
 
@@ -30,7 +30,7 @@ start cmd /k "cd frontend && npm start"
 
 echo.
 echo ========================================
-echo JaySim is starting!
+echo ClearPitch is starting!
 echo ========================================
 echo.
 echo Two new windows will open:

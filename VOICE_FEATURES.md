@@ -1,6 +1,6 @@
 # 🎤 Voice Interaction Features
 
-JaySim now supports **real-time voice conversations** with AI clients!
+ClearPitch now supports **real-time voice conversations** with AI clients!
 
 ## 🎯 Features
 

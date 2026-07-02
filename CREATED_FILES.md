@@ -1,4 +1,4 @@
-# 📋 JaySim - Complete File List
+# 📋 ClearPitch - Complete File List
 
 ## Summary
 ✅ **Backend**: 7 files created
@@ -176,7 +176,7 @@
    - Creates .env from template
    - Displays next steps
 
-2. **`start-jaysim.bat`** (Windows Start Script)
+2. **`start-clearpitch.bat`** (Windows Start Script)
    - Checks Node.js
    - Starts backend server (new window)
    - Starts frontend server (new window)
@@ -274,7 +274,7 @@
 1. Run `install.bat` (or `npm install` in both folders)
 2. Get Gemini API key from https://makersuite.google.com/app/apikey
 3. Add key to `backend/.env`
-4. Run `start-jaysim.bat` (or start both servers manually)
+4. Run `start-clearpitch.bat` (or start both servers manually)
 5. Open http://localhost:3000
 
 ### Detailed Setup

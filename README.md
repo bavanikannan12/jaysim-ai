@@ -1,10 +1,10 @@
-# JaySim - Client Simulation Platform
+# ClearPitch - Client Simulation Platform
 
 A rehearsal simulator for practicing end-to-end product thinking, solution design, and client communication skills.
 
 ## Overview
 
-JaySim is a simulation-based practice environment where developers, QA, designers, and PMs can:
+ClearPitch is a simulation-based practice environment where developers, QA, designers, and PMs can:
 - Practice end-to-end product/solution thinking
 - Practice explaining solutions to clients
 - Receive clear, actionable feedback

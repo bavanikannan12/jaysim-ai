@@ -43,7 +43,7 @@ app.use('/api/history', historyRoutes);
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    message: 'JaySim Backend is running',
+    message: 'ClearPitch Backend is running',
     aiServiceReady: geminiService.isInitialized()
   });
 });
@@ -51,7 +51,7 @@ app.get('/api/health', (req, res) => {
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'JaySim API Server',
+    message: 'ClearPitch API Server',
     version: '1.0.0',
     endpoints: {
       health: '/api/health',
@@ -75,7 +75,7 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(PORT, () => {
   console.log('\n=================================');
-  console.log('🚀 JaySim Backend Server');
+  console.log('🚀 ClearPitch Backend Server');
   console.log('=================================');
   console.log(`Server running on port ${PORT}`);
   console.log(`API available at: http://localhost:${PORT}`);

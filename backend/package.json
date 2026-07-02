@@ -1,7 +1,7 @@
 {
-  "name": "jaysim-backend",
+  "name": "clearpitch-backend",
   "version": "1.0.0",
-  "description": "JaySim Backend - Client Simulation Platform",
+  "description": "ClearPitch Backend - Client Simulation Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

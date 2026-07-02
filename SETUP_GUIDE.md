@@ -1,6 +1,6 @@
-# Quick Setup Guide for JaySim
+# Quick Setup Guide for ClearPitch
 
-Follow these steps to get JaySim running in 5 minutes.
+Follow these steps to get ClearPitch running in 5 minutes.
 
 ## Step 1: Get Gemini API Key
 
@@ -46,7 +46,7 @@ npm start
 
 You should see:
 ```
-🚀 JaySim Backend Server
+🚀 ClearPitch Backend Server
 Server running on port 5000
 ✓ Gemini AI service initialized
 ```
@@ -61,7 +61,7 @@ Browser should automatically open to http://localhost:3000
 
 ## Step 5: Test the Application
 
-1. You should see the JaySim home page with 7 scenarios
+1. You should see the ClearPitch home page with 7 scenarios
 2. Click on "Internal Discussion" to start
 3. Select session length (15 minutes recommended for first try)
 4. Click "Start Simulation"
